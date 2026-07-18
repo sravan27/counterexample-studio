@@ -1,0 +1,19 @@
+AI can write a data feature that looks right, compiles, and silently returns the wrong rows. Counterexample Studio finds the smallest sequence that makes that feature lie.
+
+Here, a customer moves from pending to complete. The write succeeds. The request finishes without an exception. But the target adapter still returns Soren in the pending customer queue. The reference model returns two rows; the IndexedDB target returns three.
+
+The starting point is a behavioral invariant written in ordinary language: when a customer changes from pending to complete, it must disappear from the pending queue exactly once. The Counterexample Studio Codex skill maps that statement to a conservative registered contract. If the intent is ambiguous, it stops for disambiguation instead of inventing semantics. Natural language proposes the contract. Only executable replay owns the verdict.
+
+The lab generates a deterministic forty-operation state-transition trace from seed seventeen-oh-nine. A reference model and the real Dexie IndexedDB target receive the same inserts, updates, deletes, and queries. The first silent divergence appears at operation thirty-one. Because the seed, trace, observations, and target semantics are recorded, another engineer can replay the same evidence.
+
+A long failing trace is still expensive to review. The minimizer uses delta debugging to remove every operation that is not required to preserve the mismatch. Forty operations become three: insert Soren as pending, update Soren to complete, and query the pending queue. That is the complete witness.
+
+Counterexample Studio then packages the contract, seed, original and minimized traces, reference and target observations, mismatch fingerprint, and SHA-two-fifty-six integrity digest. Verification replays the bundle before the tool exports a runnable Vitest regression. The regression covers this known counterexample. It does not pretend to prove universal correctness.
+
+Now I apply the corrected cache invalidation and rerun the minimized trace. The reference and target agree, and the known witness is preserved as a durable test.
+
+Under the studio is a reusable TypeScript engine with six executable contracts covering upsert replacement, delete visibility, filter-before-pagination, deterministic ordering, SQL null comparison, and inclusive range boundaries. A local MCP server exposes compile, run, minimize, verify, and export tools to Codex with path confinement and no network access.
+
+This project was built during OpenAI Build Week with Codex coordinating product selection, integration, provenance, and browser quality assurance while GPT-five-point-six workers implemented disjoint core and MCP slices. The problem is grounded in public work: four merged PowerSync correctness fixes, two merged Rocicorp Zero fixes, and a paid one-thousand-dollar PowerSync contribution.
+
+Counterexample Studio does not ask whether generated code looks convincing. It asks for the smallest replayable trace that proves it wrong.

@@ -83,5 +83,4 @@ The highest-leverage use of an AI coding agent is not just generating more imple
 
 - Public repository URL.
 - Hosted studio URL.
-- Public YouTube demo URL under three minutes with narration.
-- Final screenshots and thumbnail.
+- Public YouTube URL for the completed 2:49 narrated demo.

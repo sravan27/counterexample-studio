@@ -1,4 +1,4 @@
-# Demo Script: 165 Seconds
+# Demo Script: Under Three Minutes
 
 ## 0:00-0:15 - The Failure
 

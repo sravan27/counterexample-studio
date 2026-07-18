@@ -1,0 +1,10 @@
+ffconcat version 1.0
+file 'assets/demo-01-failure.png'
+duration 38
+file 'assets/demo-02-contract.png'
+duration 40
+file 'assets/demo-03-minimized.png'
+duration 47
+file 'assets/demo-04-passed.png'
+duration 44
+file 'assets/demo-04-passed.png'
