@@ -79,8 +79,8 @@ The highest-leverage use of an AI coding agent is not just generating more imple
 - [Rocicorp Zero #6088](https://github.com/rocicorp/mono/pull/6088)
 - [silentdrop](https://github.com/sravan27/silentdrop)
 
-## Assets Still Needed Before Submission
+## Submission Assets
 
-- Public repository URL.
-- Hosted studio URL.
-- Public YouTube URL for the completed 2:49 narrated demo.
+- Public repository: https://github.com/sravan27/counterexample-studio
+- Hosted studio: https://sravan27.github.io/counterexample-studio/
+- Public 2:49 narrated demo: https://youtu.be/Tp-_2WAuZgk

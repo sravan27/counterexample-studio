@@ -4,6 +4,8 @@
 
 Counterexample Studio turns a behavioral invariant into an executable contract, compares a target adapter with a reference model, detects semantic divergence, minimizes the failing operation trace, and exports a replayable evidence bundle plus a Vitest regression.
 
+[Launch the studio](https://sravan27.github.io/counterexample-studio/) | [Watch the 2:49 demo](https://youtu.be/Tp-_2WAuZgk)
+
 The first demonstration is deliberately mundane and dangerous: a customer moves from `pending` to `complete`, the write succeeds, no exception is raised, but a stale live-query cache keeps the customer in the pending queue. A 40-operation run is reduced to the three operations that prove the defect.
 
 ![Counterexample Studio showing a silent stale-query divergence](docs/assets/studio-desktop.png)
