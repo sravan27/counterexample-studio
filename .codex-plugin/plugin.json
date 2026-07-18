@@ -1,0 +1,19 @@
+{
+  "name": "counterexample-studio",
+  "version": "0.1.0",
+  "description": "Turn plain-English data invariants into minimized, runnable counterexamples and regression tests.",
+  "author": {
+    "name": "Sravan Sridhar"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Counterexample Studio",
+    "shortDescription": "Find the smallest proof of silent wrong data.",
+    "longDescription": "Counterexample Studio helps Codex compile data-behavior invariants into deterministic differential tests, minimize silent semantic failures, and export runnable regression tests with a verifiable evidence bundle.",
+    "developerName": "Sravan Sridhar",
+    "category": "Developer Tools",
+    "capabilities": ["Executable specifications", "Differential testing", "Trace minimization", "Regression export"],
+    "defaultPrompt": "Use Counterexample Studio to turn this data-behavior expectation into an executable contract, run the differential lab, and return the smallest reproducible counterexample."
+  },
+  "mcpServers": "./.mcp.json"
+}

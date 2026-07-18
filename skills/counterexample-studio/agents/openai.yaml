@@ -1,0 +1,4 @@
+interface:
+  display_name: "Counterexample Studio"
+  short_description: "Find and preserve minimized counterexamples"
+  default_prompt: "Use $counterexample-studio to translate my invariant into a contract, run the deterministic lab, minimize any failure, and export an evidence-backed regression."
