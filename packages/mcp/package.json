@@ -1,0 +1,20 @@
+{
+  "name": "@counterexample-studio/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP adapter for the Counterexample Studio CLI",
+  "exports": "./src/server.mjs",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "check": "node --check src/server.mjs && node --check src/cli.mjs && node --check src/policy.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "^4.0.0"
+  }
+}

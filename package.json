@@ -11,10 +11,9 @@
     "build": "npm run build --workspace @counterexample-studio/core && npm run build --workspace @counterexample-studio/studio",
     "dev": "npm run build --workspace @counterexample-studio/core && npm run dev --workspace @counterexample-studio/studio",
     "test": "npm run test --workspaces --if-present",
-    "check": "npm run check --workspaces --if-present",
-    "validate:plugin": "python3 /Users/sravansridhar/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py ."
+    "check": "npm run check --workspaces --if-present"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   }
 }

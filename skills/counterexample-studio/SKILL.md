@@ -1,85 +1,57 @@
 ---
 name: counterexample-studio
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
+description: Evidence-bounded invariant testing with deterministic counterexample generation, shrinking, replay verification, and regression export. Use when Codex needs to translate a plain-English invariant into Counterexample Studio contract JSON, test an implementation or transformation against generated cases, interpret and minimize a failure, export a regression test, verify a counterexample bundle, or make a correctness claim that must stay within observed evidence.
 ---
 
 # Counterexample Studio
 
-## Overview
+Use the deterministic lab to falsify claims, not to certify universal correctness.
 
-[TODO: 1-2 sentences explaining what this skill enables]
+## Compile the invariant
 
-## Structuring This Skill
+1. Restate the invariant as observable behavior: valid inputs, operation, expected relation, excluded inputs, and comparison semantics.
+2. Identify ambiguity before compilation. Do not silently choose units, equality rules, ordering, overflow behavior, or invalid-input policy.
+3. Call `compile_contract` with the plain-English invariant. Supply an explicit built-in contract ID only after resolving ambiguity.
+4. Inspect the returned registered contract, matched terms, and selection method. If the tool returns `needs_disambiguation`, clarify or select from its candidates; do not invent an executable contract.
+5. Preserve the contract digest. Do not hand-edit the registered manifest.
 
-[TODO: Choose the structure that best fits this skill's purpose. Common patterns:
+Compilation proves only that a contract was produced. It does not prove the contract faithfully captures the user's intent.
 
-**1. Workflow-Based** (best for sequential processes)
-- Works well when there are clear step-by-step procedures
-- Example: DOCX skill with "Workflow Decision Tree" -> "Reading" -> "Creating" -> "Editing"
-- Structure: ## Overview -> ## Workflow Decision Tree -> ## Step 1 -> ## Step 2...
+## Run the deterministic lab
 
-**2. Task-Based** (best for tool collections)
-- Works well when the skill offers different operations/capabilities
-- Example: PDF skill with "Quick Start" -> "Merge PDFs" -> "Split PDFs" -> "Extract Text"
-- Structure: ## Overview -> ## Quick Start -> ## Task Category 1 -> ## Task Category 2...
+1. Call `run_lab` with the compiled built-in contract ID.
+2. Set or preserve the integer seed, trace-step bound, and target semantics.
+3. Preserve the contract digest from compilation and the seed, target semantics, trace length, trace hash, bundle ID, and artifact path returned by the run. Do not invent missing provenance fields.
+4. If the lab finds no failure, report: `No mismatch was observed in this recorded N-step trace with seed S against target T.` Never report the invariant or implementation as correct.
+5. If the lab finds a failure, treat the original failure bundle as evidence and continue to minimization.
 
-**3. Reference/Guidelines** (best for standards or specifications)
-- Works well for brand guidelines, coding standards, or requirements
-- Example: Brand styling with "Brand Guidelines" -> "Colors" -> "Typography" -> "Features"
-- Structure: ## Overview -> ## Guidelines -> ## Specifications -> ## Usage...
+Do not change the contract, seed, target semantics, or reference oracle while describing one run.
 
-**4. Capabilities-Based** (best for integrated systems)
-- Works well when the skill provides multiple interrelated features
-- Example: Product Management with "Core Capabilities" -> numbered capability list
-- Structure: ## Overview -> ## Core Capabilities -> ### 1. Feature -> ### 2. Feature...
+## Minimize and interpret a failure
 
-Patterns can be mixed and matched as needed. Most skills combine patterns (e.g., start with task-based, add workflow for complex operations).
+1. Call `minimize_failure` with the original failure bundle.
+2. Preserve the same mismatch fingerprint under the same contract and target semantics; use kind-only preservation only when explicitly justified.
+3. Call `verify_bundle` before relying on the minimized result.
+4. Explain the reduced trace, reference observation, target observation, mismatch fingerprint, and evaluation count. Call it smaller, not globally smallest.
+5. Separate observed facts from likely root cause. A counterexample demonstrates deterministic divergence from the tested reference semantics; it does not by itself prove why the target failed or establish that the reference is universally correct.
 
-Delete this entire "Structuring This Skill" section when done - it's just guidance.]
+If minimization changes the failure class or verification fails, retain the original bundle and do not export the minimized case as evidence.
 
-## [TODO: Replace with the first main section based on chosen structure]
+## Export a regression
 
-[TODO: Add content here. See examples in existing skills:
-- Code samples for technical skills
-- Decision trees for complex workflows
-- Concrete examples with realistic user requests
-- References to scripts/templates/references as needed]
+1. Export only a verified original or minimized bundle with `export_regression`.
+2. Choose a workspace-local output path and export the project's supported Vitest regression.
+3. Inspect the generated test before running or committing it.
+4. Inspect or port the generated test if the target repository uses another framework, then run the narrow test and relevant suite with that repository's normal commands.
+5. Report that the regression preserves the known counterexample. Do not claim it establishes the full invariant.
 
-## Resources (optional)
+## Evidence language
 
-Create only the resource directories this skill actually needs. Delete this section if no resources are required.
+Use claims proportional to evidence:
 
-### scripts/
-Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
+- Verified failure: `This trace deterministically violates contract clause X under target semantics Y.`
+- Verified minimized failure: `This is a smaller replaying witness for the same violation.`
+- Passing bounded run: `No failure was found in the N-step trace generated with seed S against target T.`
+- Exported regression: `This test covers the verified witness.`
 
-**Examples from other skills:**
-- PDF skill: `fill_fillable_fields.py`, `extract_form_field_info.py` - utilities for PDF manipulation
-- DOCX skill: `document.py`, `utilities.py` - Python modules for document processing
-
-**Appropriate for:** Python scripts, shell scripts, or any executable code that performs automation, data processing, or specific operations.
-
-**Note:** Scripts may be executed without loading into context, but can still be read by Codex for patching or environment adjustments.
-
-### references/
-Documentation and reference material intended to be loaded into context to inform Codex's process and thinking.
-
-**Examples from other skills:**
-- Product management: `communication.md`, `context_building.md` - detailed workflow guides
-- BigQuery: API reference documentation and query examples
-- Finance: Schema documentation, company policies
-
-**Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Codex should reference while working.
-
-### assets/
-Files not intended to be loaded into context, but rather used within the output Codex produces.
-
-**Examples from other skills:**
-- Brand styling: PowerPoint template files (.pptx), logo files
-- Frontend builder: HTML/React boilerplate project directories
-- Typography: Font files (.ttf, .woff2)
-
-**Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
-
----
-
-**Not every skill requires all three types of resources.**
+Never replace a contract digest, seed, trace bound, target semantics, or verification result with conversational memory.
