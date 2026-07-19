@@ -64,6 +64,20 @@ The integration deliberately distinguishes four claims:
 
 None of these alone proves implementation correctness beyond the recorded evidence.
 
+## Historical verification path
+
+The browser demonstration uses a deliberately faulty cache adapter so the entire falsification loop can run locally and visibly. A separate verifier prevents that controlled example from being mistaken for the project's only validation:
+
+```text
+exact pre-fix npm package  --\
+                             differential trace -> minimizer -> hash-bound evidence
+SQLite-compatible reference --/
+
+exact post-fix npm package -> replay minimized witness -> match
+```
+
+`scripts/historical-powersync-replay.mjs` imports two exact published versions of `@powersync/service-sync-rules` around merged PowerSync PR #646. It executes the upstream division operator directly, records npm integrity values and source-file SHA-256 hashes, minimizes the failing trace with the same core engine, verifies the post-fix package against the witness, and compares the result with the checked-in evidence. `npm run verify:historical` performs no network access after dependencies are installed and runs in the Pages deployment workflow.
+
 ## Security model
 
 The plugin assumes the local workspace and `scripts/counterexample.mjs` are trusted. Contract prose, candidate implementations, failure bundles, and generated tests are untrusted data.

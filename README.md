@@ -10,6 +10,20 @@ The first demonstration is deliberately mundane and dangerous: a customer moves 
 
 ![Counterexample Studio showing a silent stale-query divergence](docs/assets/studio-desktop.png)
 
+## Verified On Published Upstream Code
+
+The interactive cache defect is intentionally injected so the full workflow is easy to inspect. It is not the project's only proof.
+
+An independent historical verifier imports and executes two exact, published versions of PowerSync's sync-rules package around merged [PR #646](https://github.com/powersync-ja/powersync-service/pull/646). The pre-fix package returns JavaScript `Infinity` for `5 / 0`; the post-fix package returns SQL `NULL`, matching SQLite. Counterexample Studio reduces a ten-operation differential trace to the two-operation witness and hash-binds the result.
+
+```bash
+npm run verify:historical
+```
+
+The checked-in [evidence bundle](evidence/historical/powersync-division-by-zero.json) records exact package versions, npm integrity values, source hashes, observations, minimization statistics, and its own SHA-256 digest. CI reruns this replay on every deployment.
+
+![Counterexample Studio replaying published PowerSync packages before and after the fix](docs/assets/upstream-replay-desktop.png)
+
 ## Why It Exists
 
 AI can generate implementation code quickly. The hard part is knowing when code is plausibly correct but semantically wrong. Conventional tests usually encode examples after a developer already understands the failure. Counterexample Studio starts from the invariant and searches for the witness.
@@ -29,6 +43,7 @@ Requirements: Node.js 22.18 or newer.
 ```bash
 npm install
 npm test
+npm run verify:historical
 npm run build
 npm run dev
 ```
@@ -88,6 +103,7 @@ flowchart LR
 
 - `packages/core`: contract registry, adapters, differential runner, mismatch classifier, minimizer, bundle verification, and regression export.
 - `scripts/counterexample.mjs`: local CLI for repeatable runs and artifacts.
+- `scripts/historical-powersync-replay.mjs`: independent verifier against two exact published upstream packages.
 - `apps/studio`: operational browser lab with a real IndexedDB target adapter.
 - `skills/counterexample-studio`: Codex workflow for compiling invariants and interpreting bounded evidence.
 - `packages/mcp`: local MCP surface over the CLI.
@@ -109,6 +125,8 @@ This is a new product informed by a public correctness track record, not a repac
 - The public [silentdrop](https://github.com/sravan27/silentdrop) corpus, which documents recurring wrong-row behavior across JavaScript data engines.
 
 The complete boundary between prior evidence and Build Week implementation is recorded in [BUILD_WEEK_SCOPE.md](BUILD_WEEK_SCOPE.md) and [CASE_STUDY.md](docs/CASE_STUDY.md).
+
+PR #646 is also replayed as a historical verification fixture. The verifier is new Build Week code; the two public npm packages remain attributed upstream dependencies and are never presented as new implementation.
 
 ## Evidence, Not Theater
 

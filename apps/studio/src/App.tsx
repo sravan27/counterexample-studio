@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   ArrowDownToLine,
   BadgeCheck,
   Braces,
@@ -12,10 +13,12 @@ import {
   Database,
   FileJson2,
   FlaskConical,
+  ExternalLink,
   GitCompareArrows,
   History,
   Info,
   Minimize2,
+  PackageCheck,
   Play,
   RefreshCcw,
   ScanSearch,
@@ -27,6 +30,7 @@ import {
 } from "lucide-react";
 import { listContractManifests } from "@counterexample-studio/core/catalog";
 import { useMemo, useState } from "react";
+import historicalReplay from "../../../evidence/historical/powersync-division-by-zero.json";
 import { replayInDexie } from "./db";
 import {
   formatOperation,
@@ -61,7 +65,7 @@ export function App() {
   );
   const [copied, setCopied] = useState(false);
   const [exported, setExported] = useState(false);
-  const [rightTab, setRightTab] = useState<"verdict" | "contract">("verdict");
+  const [rightTab, setRightTab] = useState<"verdict" | "contract" | "upstream">("verdict");
 
   const mismatch = useMemo(
     () => steps.find((step) => step.mismatch),
@@ -148,6 +152,13 @@ export function App() {
           </div>
         </div>
         <div className="app-status">
+          <button
+            className="upstream-header-badge"
+            onClick={() => setRightTab("upstream")}
+            type="button"
+          >
+            <PackageCheck /> Published replay verified
+          </button>
           <span className="runtime-badge"><CircleDot /> Local deterministic runtime</span>
           <span className="build-badge"><Sparkles /> Built with Codex + GPT-5.6</span>
           <button
@@ -222,6 +233,19 @@ export function App() {
             traceLength={trace.length}
           />
 
+          <button
+            className="upstream-proof-strip"
+            onClick={() => setRightTab("upstream")}
+            type="button"
+          >
+            <PackageCheck />
+            <span>
+              <strong>Verified on published upstream code</strong>
+              <small>PowerSync package replay: Infinity before the fix → SQLite NULL after it</small>
+            </span>
+            <ArrowRight />
+          </button>
+
           <section className="application-state">
             <div className="section-title">
               <div><span>Observed application state</span><h2>Pending customer queue</h2></div>
@@ -267,6 +291,7 @@ export function App() {
           <div className="tab-list" role="tablist">
             <button aria-selected={rightTab === "verdict"} className={rightTab === "verdict" ? "active" : ""} onClick={() => setRightTab("verdict")} role="tab" type="button">Verdict</button>
             <button aria-selected={rightTab === "contract"} className={rightTab === "contract" ? "active" : ""} onClick={() => setRightTab("contract")} role="tab" type="button">Contract</button>
+            <button aria-selected={rightTab === "upstream"} className={rightTab === "upstream" ? "active" : ""} onClick={() => setRightTab("upstream")} role="tab" type="button">Upstream</button>
           </div>
 
           {rightTab === "verdict" ? (
@@ -301,8 +326,10 @@ export function App() {
                 <div className="pass-proof"><BadgeCheck /><div><strong>Correction verified</strong><span>Reference and target agree across the minimized replay.</span></div></div>
               )}
             </>
-          ) : (
+          ) : rightTab === "contract" ? (
             <ContractPanel copied={copied} onCopy={() => void copyContract()} />
+          ) : (
+            <HistoricalReplayPanel />
           )}
         </aside>
       </main>
@@ -374,6 +401,69 @@ function ContractPanel({ copied, onCopy }: { copied: boolean; onCopy: () => void
       <div className="code-panel"><header><span>contract.json</span><button aria-label="Copy contract" onClick={onCopy} title="Copy contract" type="button">{copied ? <Check /> : <Clipboard />}</button></header><pre>{JSON.stringify(CONTRACT_JSON, null, 2)}</pre></div>
       <div className="boundary-note"><Info /><p><strong>Evidence boundary</strong><span>Natural language proposes the contract. Only executable replay can mark it pass or fail.</span></p></div>
       <section className="contract-properties"><div><span>Comparator</span><strong>ordered-record-ids</strong></div><div><span>Observation</span><strong>pending query</strong></div><div><span>Transition</span><strong>pending → complete</strong></div><div><span>Runtime</span><strong>deterministic</strong></div></section>
+    </div>
+  );
+}
+
+function HistoricalReplayPanel() {
+  const directCase = historicalReplay.directCases.find(
+    (candidate) => candidate.id === "real-zero",
+  );
+  const before = directCase?.before.value ?? "unknown";
+  const after = directCase?.after.value === null
+    ? "NULL"
+    : String(directCase?.after.value ?? "unknown");
+
+  return (
+    <div className="upstream-tab">
+      <section className="upstream-summary">
+        <PackageCheck />
+        <div>
+          <span>Independent historical replay</span>
+          <h2>Real published packages, same witness</h2>
+          <p>The verifier executes two pinned PowerSync npm builds around merged PR #646. This is separate from the injected IndexedDB demonstration.</p>
+        </div>
+      </section>
+
+      <section className="package-comparison" aria-label="PowerSync package replay comparison">
+        <div className="package-result before">
+          <span>Before fix · published May 15</span>
+          <code>{historicalReplay.packages.before.version}</code>
+          <strong>5 / 0 → {String(before)}</strong>
+          <em>diverged from SQLite</em>
+        </div>
+        <ArrowRight />
+        <div className="package-result after">
+          <span>After fix · published Jun 2</span>
+          <code>{historicalReplay.packages.after.version}</code>
+          <strong>5 / 0 → {after}</strong>
+          <em>matched SQLite</em>
+        </div>
+      </section>
+
+      <section className="upstream-metrics">
+        <div><span>Generated trace</span><strong>{historicalReplay.differentialReplay.originalTraceLength}</strong></div>
+        <div><span>Minimal witness</span><strong>{historicalReplay.differentialReplay.minimizedTraceLength}</strong></div>
+        <div><span>Evaluations</span><strong>{historicalReplay.differentialReplay.evaluations}</strong></div>
+      </section>
+
+      <div className="boundary-note upstream-boundary">
+        <ShieldCheck />
+        <p>
+          <strong>Execution boundary</strong>
+          <span>Both package versions and their registry integrity hashes are pinned in the lockfile. Verification needs no network after installation.</span>
+        </p>
+      </div>
+
+      <div className="code-panel upstream-command">
+        <header><span>reproduce locally</span><span>sha256:{historicalReplay.integrity.digest.slice(0, 12)}…</span></header>
+        <pre>npm run verify:historical</pre>
+      </div>
+
+      <div className="upstream-links">
+        <a href={historicalReplay.upstream.pullRequest} rel="noreferrer" target="_blank"><ExternalLink /> Merged upstream PR</a>
+        <a href="https://github.com/sravan27/counterexample-studio/blob/main/evidence/historical/powersync-division-by-zero.json" rel="noreferrer" target="_blank"><FileJson2 /> Evidence JSON</a>
+      </div>
     </div>
   );
 }

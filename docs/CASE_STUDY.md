@@ -48,6 +48,14 @@ invariant -> contract -> generated trace -> differential mismatch
 
 The browser demonstration uses a new scenario rather than replaying a prior pull request. A customer is inserted into a pending queue, updated to complete, and queried again. The target write succeeds, but stale cache invalidation leaves the completed customer visible in the pending queue. The lab reduces forty operations to the three-step proof and verifies the corrected adapter against that witness.
 
+## Closing The Proof Gap
+
+A deliberately faulty demo can explain a product, but it cannot establish that the machinery works on independent code. Counterexample Studio therefore includes a historical replay against two exact published versions of PowerSync's sync-rules package around PR #646.
+
+The verifier calls the upstream division operator directly. The pre-fix package evaluates `5 / 0` as `Infinity`, which fails a SQLite-compatible `IS NULL` query. The post-fix package evaluates the same witness as `NULL` and matches the reference. A generated ten-operation trace is minimized to the required write and query, and the evidence records both npm integrity values, both source hashes, every observation, and a SHA-256 digest.
+
+This is not a reconstruction of the old bug in new code. It is an executable before-and-after replay of the published upstream packages.
+
 ## What Is New
 
 Every executable component in this repository was created during Build Week:
@@ -61,7 +69,7 @@ Every executable component in this repository was created during Build Week:
 - IndexedDB studio;
 - Codex skill and local MCP server.
 
-Prior work is cited only as public problem evidence. No PowerSync, Rocicorp, or private security-report code is copied into this project.
+Prior work is cited as public problem evidence. No PowerSync, Rocicorp, or private security-report code is copied into the product implementation. Two exact public PowerSync npm packages are installed only as attributed historical verification fixtures.
 
 ## The Claim Boundary
 
