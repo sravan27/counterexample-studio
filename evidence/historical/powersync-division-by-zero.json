@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.0",
+  "title": "Published PowerSync division-by-zero replay",
+  "claim": "A published pre-fix PowerSync evaluator diverges from SQLite for division by zero; the published post-fix evaluator agrees on the minimized witness.",
+  "upstream": {
+    "repository": "powersync-ja/powersync-service",
+    "pullRequest": "https://github.com/powersync-ja/powersync-service/pull/646",
+    "affectedSource": "packages/sync-rules/src/sql_functions.ts",
+    "fixCommit": "64d2d0acd04c988a8dbf39c3ef8196b788ad4620",
+    "mergeCommit": "0aab0f9a145322df80a02398656fa8f3ef58a372"
+  },
+  "packages": {
+    "before": {
+      "alias": "powersync-sync-rules-pre",
+      "name": "@powersync/service-sync-rules",
+      "version": "0.0.0-dev-20260515144844",
+      "publishedAt": "2026-05-15T14:49:02.026Z",
+      "registryIntegrity": "sha512-2HfBSQLSHTDJjzenQEUwIE9X5Nbc1xItoLA86GhBzb9ktXvSuXd7x599IHaSg3T/6EcDQ4w1MEPRVJxcD6CwNw==",
+      "sourceSha256": "a198a1e6bca06549416a6617a4bee86be4256b98ac3727d9326e91f754658ca6"
+    },
+    "after": {
+      "alias": "powersync-sync-rules-post",
+      "name": "@powersync/service-sync-rules",
+      "version": "0.0.0-dev-20260602073133",
+      "publishedAt": "2026-06-02T07:31:52.850Z",
+      "registryIntegrity": "sha512-RmaHpc6vO+JkBoAGXTDWYi3A4+qIR0KhExAmgjW3AF3m5+yclSXxxJTu1eUobnuNh0ZGf0bzo+TFDCpMp//1ig==",
+      "sourceSha256": "f7c05c5994432030f51f11749d2d947aed73cf0a2cdbcc784b0b19b5ba2d51a7"
+    }
+  },
+  "directCases": [
+    {
+      "id": "real-zero",
+      "numerator": 5,
+      "denominator": 0,
+      "expected": null,
+      "before": {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      "after": {
+        "kind": "null",
+        "value": null
+      }
+    },
+    {
+      "id": "zero-over-zero",
+      "numerator": 0,
+      "denominator": 0,
+      "expected": null,
+      "before": {
+        "kind": "number",
+        "value": "NaN"
+      },
+      "after": {
+        "kind": "null",
+        "value": null
+      }
+    },
+    {
+      "id": "string-zero",
+      "numerator": 5,
+      "denominator": "0",
+      "expected": null,
+      "before": {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      "after": {
+        "kind": "null",
+        "value": null
+      }
+    },
+    {
+      "id": "control",
+      "numerator": 6,
+      "denominator": 2,
+      "expected": 3,
+      "before": {
+        "kind": "number",
+        "value": 3
+      },
+      "after": {
+        "kind": "number",
+        "value": 3
+      }
+    }
+  ],
+  "differentialReplay": {
+    "originalTraceLength": 10,
+    "minimizedTraceLength": 2,
+    "evaluations": 13,
+    "mismatchKind": "missing_rows",
+    "missingRows": [
+      "powersync-zero-denominator"
+    ],
+    "minimizedTrace": [
+      {
+        "op": "put",
+        "record": {
+          "denominator": 0,
+          "id": "powersync-zero-denominator",
+          "numerator": 0
+        }
+      },
+      {
+        "op": "query",
+        "query": {
+          "where": {
+            "field": "quotient",
+            "op": "isNull"
+          }
+        }
+      }
+    ],
+    "beforeFixMatch": false,
+    "afterFixMatch": true
+  },
+  "verification": {
+    "command": "npm run verify:historical",
+    "networkRequired": false,
+    "executionBoundary": "The verifier imports the two npm packages pinned in package-lock.json and executes their exported division operator."
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "digest": "0dc4969945088670e7d549dea6a30afb2924c4a2a5ed30c13c69a408fab898bb"
+  }
+}

@@ -14,7 +14,7 @@ Developer Tools
 
 ## Short Description
 
-Counterexample Studio turns a plain-English data invariant into an executable contract, drives a reference model and target adapter through the same deterministic operations, detects silent semantic divergence, minimizes the failing trace, and exports a verified evidence bundle plus runnable regression test.
+Counterexample Studio turns a plain-English data invariant into an executable contract, drives a reference model and target adapter through identical deterministic operations, finds silent semantic divergence, minimizes the failing trace, and exports a verified evidence bundle plus runnable regression. It also proves the workflow against two exact published PowerSync packages from before and after a real merged fix.
 
 ## Inspiration
 
@@ -34,6 +34,8 @@ Counterexample Studio provides an end-to-end falsification loop:
 
 The interactive studio demonstrates a completed customer incorrectly remaining in a pending queue because of stale live-query cache invalidation. The request succeeds and no exception is thrown. Forty operations are reduced to the three that prove the defect, then the corrected adapter is rerun against the witness.
 
+The studio also exposes an independent historical replay. It executes exact published PowerSync package versions around merged PR #646, reproduces `5 / 0 -> Infinity` before the fix and `5 / 0 -> NULL` after it, then reduces a ten-operation trace to the two operations required to prove the row-set mismatch. Exact npm integrity values, source hashes, observations, and the evidence digest are checked into the repository and verified in CI.
+
 ## How We Built It
 
 The project is a TypeScript monorepo with a deterministic core engine, CLI, React/Vite studio, real Dexie/IndexedDB target adapter, Codex skill, and local MCP server. The engine avoids network calls and time-dependent behavior. Evidence bundles are replayed and SHA-256 verified before regression export.
@@ -44,7 +46,7 @@ Codex coordinated the product pivot, architecture, public provenance checks, int
 
 The hardest design decision was epistemic, not visual. A generated test pass is not proof of correctness. The product had to distinguish a verified counterexample, a regression covering one witness, and a bounded run that found no witness. That claim boundary shaped the bundle format, replay verification, MCP annotations, and Codex instructions.
 
-The second challenge was minimization. Removing an operation can change the type of failure rather than merely simplify it. The minimizer therefore preserves mismatch kind or fingerprint and validates every candidate trace before accepting a reduction.
+The second challenge was minimization. Removing an operation can change the type of failure rather than merely simplify it. The minimizer therefore preserves mismatch kind or fingerprint and validates every candidate trace before accepting a reduction. Building the historical replay also exposed an oscillation in value simplification inside our own minimizer. We fixed it with a strictly monotonic simplification order and added a budget-exhaustion regression test.
 
 ## Accomplishments
 
@@ -54,12 +56,16 @@ The second challenge was minimization. Removing an operation can change the type
 - Tamper-evident, replay-verified evidence bundles.
 - Runnable Vitest regression export.
 - A real IndexedDB demonstration of silent stale-query state.
+- An independently reproducible before-and-after replay against two exact published upstream packages.
 - A local Codex skill and MCP integration with path confinement and no network access.
 - Explicit Build Week provenance separating new implementation from prior public evidence.
+- Forty-four passing automated tests, plus historical verification in the deployment workflow.
 
 ## What We Learned
 
 The highest-leverage use of an AI coding agent is not just generating more implementation. It is turning intent into an adversarial, inspectable test loop. The useful output is not a confident sentence. It is a small witness another engineer can replay.
+
+The strongest credibility test was aiming the tool back at both upstream code and its own minimizer. A useful correctness product must be willing to falsify itself.
 
 ## What Is Next
 
@@ -74,6 +80,7 @@ The highest-leverage use of an AI coding agent is not just generating more imple
 - [PowerSync #644](https://github.com/powersync-ja/powersync-service/pull/644)
 - [PowerSync #645](https://github.com/powersync-ja/powersync-service/pull/645)
 - [PowerSync #646](https://github.com/powersync-ja/powersync-service/pull/646)
+- [Reproducible PR #646 evidence](https://github.com/sravan27/counterexample-studio/blob/main/evidence/historical/powersync-division-by-zero.json)
 - [PowerSync #647](https://github.com/powersync-ja/powersync-service/pull/647)
 - [Rocicorp Zero #6083](https://github.com/rocicorp/mono/pull/6083)
 - [Rocicorp Zero #6088](https://github.com/rocicorp/mono/pull/6088)
@@ -84,3 +91,5 @@ The highest-leverage use of an AI coding agent is not just generating more imple
 - Public repository: https://github.com/sravan27/counterexample-studio
 - Hosted studio: https://sravan27.github.io/counterexample-studio/
 - Public 2:49 narrated demo: https://youtu.be/Tp-_2WAuZgk
+- Published-package replay screenshot: `docs/assets/upstream-replay-desktop.png`
+- Mobile evidence screenshot: `docs/assets/upstream-replay-mobile.png`

@@ -20,10 +20,20 @@ function chunks(length: number, count: number): Array<[number, number]> {
 }
 
 function simplifiedValues(value: JsonValue): JsonValue[] {
-  if (typeof value === "number") return [0, 1, -1].filter((candidate) => candidate !== value);
-  if (typeof value === "string") return ["", "a"].filter((candidate) => candidate !== value);
-  if (typeof value === "boolean") return [!value];
-  if (Array.isArray(value) && value.length > 0) return [[], value.slice(0, 1)];
+  if (typeof value === "number") {
+    if (value === 0) return [];
+    if (value === 1 || value === -1) return [0];
+    return [0, 1, -1];
+  }
+  if (typeof value === "string") {
+    if (value === "") return [];
+    if (value === "a") return [""];
+    return ["", "a"];
+  }
+  if (typeof value === "boolean") return value ? [false] : [];
+  if (Array.isArray(value) && value.length > 0) {
+    return value.length === 1 ? [[]] : [[], value.slice(0, 1)];
+  }
   return [];
 }
 

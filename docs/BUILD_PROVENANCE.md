@@ -5,6 +5,7 @@
 - OpenAI Build Week began on 2026-07-13.
 - Counterexample Studio was selected and scaffolded on 2026-07-18.
 - Initial repository commit: `8a27b6a` (`chore: scaffold Counterexample Studio for Build Week`).
+- A published-package replay for PowerSync PR #646 and its studio evidence panel were added on 2026-07-19.
 
 The repository history after that commit is the source of truth for implementation timing.
 
@@ -17,6 +18,7 @@ The main Codex rollout performed:
 - architecture and work decomposition;
 - public PR provenance verification;
 - studio implementation and integration;
+- published-package historical replay and provenance binding;
 - test, browser, responsive, and packaging QA;
 - claim-boundary review;
 - README, case study, demo script, and submission packet.
@@ -39,7 +41,7 @@ The following existed before Build Week and is cited only as public evidence:
 - `sravan27/silentdrop`;
 - `sravan27/silentdrop-llm`.
 
-No source code from those projects is part of Counterexample Studio. No private vulnerability report, customer email, payment record, or unpublished third-party material is included.
+No upstream source is copied into Counterexample Studio's implementation. The historical verifier installs two exact public PowerSync npm packages as attributed development fixtures and executes their exported operator surface. Their registry integrity values and source hashes are recorded so the before-and-after claim is independently reproducible. No private vulnerability report, customer email, payment record, or unpublished third-party material is included.
 
 ## Reproducibility
 
@@ -47,6 +49,7 @@ Before submission, the repository should preserve:
 
 - installation, test, type-check, and production-build output;
 - CLI-generated evidence bundles for all included contracts;
+- the checked-in, hash-bound historical PowerSync replay and exact package lock;
 - plugin validation output;
 - desktop and mobile screenshots from the production build;
 - the final public repository commit SHA;

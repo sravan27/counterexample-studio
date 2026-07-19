@@ -11,9 +11,15 @@
     "build": "npm run build --workspace @counterexample-studio/core && npm run build --workspace @counterexample-studio/studio",
     "dev": "npm run build --workspace @counterexample-studio/core && npm run dev --workspace @counterexample-studio/studio",
     "test": "npm run test --workspaces --if-present",
-    "check": "npm run check --workspaces --if-present"
+    "check": "npm run check --workspaces --if-present",
+    "evidence:historical": "node --experimental-strip-types scripts/historical-powersync-replay.mjs --write",
+    "verify:historical": "node --experimental-strip-types scripts/historical-powersync-replay.mjs"
   },
   "engines": {
     "node": ">=22.18"
+  },
+  "devDependencies": {
+    "powersync-sync-rules-post": "npm:@powersync/service-sync-rules@0.0.0-dev-20260602073133",
+    "powersync-sync-rules-pre": "npm:@powersync/service-sync-rules@0.0.0-dev-20260515144844"
   }
 }

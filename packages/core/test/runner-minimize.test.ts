@@ -54,3 +54,30 @@ test("minimizer refuses passing traces", () => {
     (trace) => runDifferentialTrace(trace, createAdapter("reference"), createAdapter("reference")),
   ), /does not fail/);
 });
+
+test("value simplification is monotonic and cannot exhaust the evaluation budget", () => {
+  const trace = [
+    { op: "put", record: { id: "witness", active: true, score: 7 } },
+    { op: "query", label: "observe any row", query: {} },
+  ] as const;
+
+  const evaluate = (candidate: Parameters<typeof runDifferentialTrace>[0]) => {
+    const target = createAdapter("reference");
+    return runDifferentialTrace(candidate, createAdapter("reference"), {
+      name: "drop-query-rows",
+      apply(operation) {
+        const result = target.apply(operation);
+        return result.kind === "query" ? { kind: "query", rows: [] } : result;
+      },
+      snapshot: () => target.snapshot(),
+    });
+  };
+
+  const minimized = minimizeTrace([...trace], evaluate, { maxEvaluations: 100 });
+
+  assert.equal(minimized.result.mismatch?.kind, "missing_rows");
+  assert.ok(minimized.evaluations < 20, `used ${minimized.evaluations} evaluations`);
+  assert.equal(minimized.trace.length, 2);
+  assert.deepEqual(minimized.trace[0], { op: "put", record: { id: "witness" } });
+  assert.deepEqual(minimized.trace[1], { op: "query", query: {} });
+});
