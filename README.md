@@ -10,6 +10,12 @@ The first demonstration is deliberately mundane and dangerous: a customer moves 
 
 ![Counterexample Studio showing a silent stale-query divergence](docs/assets/studio-desktop.png)
 
+## Six Contracts, Executed In The Browser
+
+The contract catalog is an executable lab, not a list of fixtures. Select any of the six semantic contracts and the browser runs the shared core engine against its reference and mutant adapters, minimizes the generated 12-operation failure, creates a hash-bound evidence bundle, replay-verifies it, and makes the JSON available for download. Re-running the same contract with the recorded seed produces the same witness and bundle ID.
+
+![Counterexample Studio executing and verifying the six-contract matrix](docs/assets/contract-matrix-desktop.png)
+
 ## Verified On Published Upstream Code
 
 The interactive cache defect is intentionally injected so the full workflow is easy to inspect. It is not the project's only proof.
@@ -104,7 +110,7 @@ flowchart LR
 - `packages/core`: contract registry, adapters, differential runner, mismatch classifier, minimizer, bundle verification, and regression export.
 - `scripts/counterexample.mjs`: local CLI for repeatable runs and artifacts.
 - `scripts/historical-powersync-replay.mjs`: independent verifier against two exact published upstream packages.
-- `apps/studio`: operational browser lab with a real IndexedDB target adapter.
+- `apps/studio`: operational browser lab with a real IndexedDB target adapter and an executable six-contract matrix backed by the shared core.
 - `skills/counterexample-studio`: Codex workflow for compiling invariants and interpreting bounded evidence.
 - `packages/mcp`: local MCP surface over the CLI.
 

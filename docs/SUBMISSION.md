@@ -34,11 +34,13 @@ Counterexample Studio provides an end-to-end falsification loop:
 
 The interactive studio demonstrates a completed customer incorrectly remaining in a pending queue because of stale live-query cache invalidation. The request succeeds and no exception is thrown. Forty operations are reduced to the three that prove the defect, then the corrected adapter is rerun against the witness.
 
+The six-row contract catalog is also fully executable in the browser. Selecting a contract runs its real reference and mutant adapters through the shared core, minimizes a deterministic 12-operation failure, creates a hash-bound bundle, replay-verifies it, and exposes the evidence JSON for download. There is no precomputed result fixture behind the matrix.
+
 The studio also exposes an independent historical replay. It executes exact published PowerSync package versions around merged PR #646, reproduces `5 / 0 -> Infinity` before the fix and `5 / 0 -> NULL` after it, then reduces a ten-operation trace to the two operations required to prove the row-set mismatch. Exact npm integrity values, source hashes, observations, and the evidence digest are checked into the repository and verified in CI.
 
 ## How We Built It
 
-The project is a TypeScript monorepo with a deterministic core engine, CLI, React/Vite studio, real Dexie/IndexedDB target adapter, Codex skill, and local MCP server. The engine avoids network calls and time-dependent behavior. Evidence bundles are replayed and SHA-256 verified before regression export.
+The project is a TypeScript monorepo with a deterministic core engine, CLI, React/Vite studio, real Dexie/IndexedDB target adapter, Codex skill, and local MCP server. The engine avoids network calls and time-dependent behavior. Evidence bundles are replayed and SHA-256 verified before regression export. The same core now runs directly in the browser, using an audited browser-compatible SHA-256 implementation so the live matrix and Node CLI produce identical canonical digests.
 
 Codex coordinated the product pivot, architecture, public provenance checks, integration, and browser QA. Parallel GPT-5.6 agents implemented disjoint core-engine and MCP/skill slices while the main rollout built the studio and submission narrative. The included Codex skill is also a runtime part of the product: it compiles invariants, exposes assumptions, invokes deterministic tools, and keeps claims bounded to recorded evidence.
 
@@ -51,6 +53,7 @@ The second challenge was minimization. Removing an operation can change the type
 ## Accomplishments
 
 - Six deterministic executable contracts.
+- A live six-contract browser matrix that runs, minimizes, verifies, and exports real evidence without fixture JSON.
 - Stepwise reference-versus-target observations and mismatch taxonomy.
 - Delta-debugging minimizer with bounded evaluations.
 - Tamper-evident, replay-verified evidence bundles.
@@ -59,7 +62,7 @@ The second challenge was minimization. Removing an operation can change the type
 - An independently reproducible before-and-after replay against two exact published upstream packages.
 - A local Codex skill and MCP integration with path confinement and no network access.
 - Explicit Build Week provenance separating new implementation from prior public evidence.
-- Forty-four passing automated tests, plus historical verification in the deployment workflow.
+- Forty-six passing automated tests, plus historical verification in the deployment workflow.
 
 ## What We Learned
 
@@ -91,5 +94,7 @@ The strongest credibility test was aiming the tool back at both upstream code an
 - Public repository: https://github.com/sravan27/counterexample-studio
 - Hosted studio: https://sravan27.github.io/counterexample-studio/
 - Public 2:49 narrated demo: https://youtu.be/Tp-_2WAuZgk
+- Live contract matrix screenshot: `docs/assets/contract-matrix-desktop.png`
+- Live contract matrix mobile screenshot: `docs/assets/contract-matrix-mobile.png`
 - Published-package replay screenshot: `docs/assets/upstream-replay-desktop.png`
 - Mobile evidence screenshot: `docs/assets/upstream-replay-mobile.png`

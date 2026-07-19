@@ -64,6 +64,18 @@ The integration deliberately distinguishes four claims:
 
 None of these alone proves implementation correctness beyond the recorded evidence.
 
+## Browser execution path
+
+The studio imports the same registered contracts, adapters, runner, minimizer, evidence builder, and verifier used by the CLI. Its six-contract matrix has no precomputed result payload:
+
+```text
+catalog selection -> seeded trace -> reference + mutant adapters
+                  -> differential mismatch -> minimizer
+                  -> canonical SHA-256 bundle -> replay verification -> JSON download
+```
+
+Canonical hashing uses `@noble/hashes` so identical bundle content produces identical SHA-256 digests in Node and modern browsers. Each matrix run fails closed if the mutant unexpectedly matches or if replay verification rejects the resulting bundle. The interface reports the bounded seed, trace size, mismatch class, observations, minimization evaluations, bundle ID, digest, and replay result.
+
 ## Historical verification path
 
 The browser demonstration uses a deliberately faulty cache adapter so the entire falsification loop can run locally and visibly. A separate verifier prevents that controlled example from being mistaken for the project's only validation:

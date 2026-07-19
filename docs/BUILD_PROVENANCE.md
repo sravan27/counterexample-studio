@@ -6,6 +6,7 @@
 - Counterexample Studio was selected and scaffolded on 2026-07-18.
 - Initial repository commit: `8a27b6a` (`chore: scaffold Counterexample Studio for Build Week`).
 - A published-package replay for PowerSync PR #646 and its studio evidence panel were added on 2026-07-19.
+- The six-contract catalog became a live browser execution surface on 2026-07-19, using the same runner, minimizer, bundle, and verifier as the CLI.
 
 The repository history after that commit is the source of truth for implementation timing.
 
@@ -19,6 +20,7 @@ The main Codex rollout performed:
 - public PR provenance verification;
 - studio implementation and integration;
 - published-package historical replay and provenance binding;
+- browser-native execution and deterministic evidence verification for all six contracts;
 - test, browser, responsive, and packaging QA;
 - claim-boundary review;
 - README, case study, demo script, and submission packet.
