@@ -15,6 +15,7 @@ import {
   FlaskConical,
   ExternalLink,
   GitCompareArrows,
+  Grid3X3,
   History,
   Info,
   Minimize2,
@@ -29,8 +30,13 @@ import {
   Zap,
 } from "lucide-react";
 import { listContractManifests } from "@counterexample-studio/core/catalog";
-import { useMemo, useState } from "react";
+import type { ContractManifest, OperationResult, TraceOperation } from "@counterexample-studio/core";
+import { useEffect, useMemo, useState } from "react";
 import historicalReplay from "../../../evidence/historical/powersync-division-by-zero.json";
+import {
+  CATALOG_LAB_SEED,
+  executeCatalogContract,
+} from "./catalog-lab";
 import { replayInDexie } from "./db";
 import {
   formatOperation,
@@ -50,6 +56,7 @@ const CONTRACT_JSON = {
 
 const CONTRACT_LIBRARY = listContractManifests();
 const INITIAL_STEPS = replay(pendingEvictionScenario.trace, false);
+type CatalogEvidence = ReturnType<typeof executeCatalogContract>;
 
 function sleep(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -66,6 +73,10 @@ export function App() {
   const [copied, setCopied] = useState(false);
   const [exported, setExported] = useState(false);
   const [rightTab, setRightTab] = useState<"verdict" | "contract" | "upstream">("verdict");
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogContractId, setCatalogContractId] = useState(CONTRACT_LIBRARY[0]?.id ?? "upsert-replaces-existing");
+  const [catalogEvidence, setCatalogEvidence] = useState<CatalogEvidence | null>(null);
+  const [catalogRunNumber, setCatalogRunNumber] = useState(0);
 
   const mismatch = useMemo(
     () => steps.find((step) => step.mismatch),
@@ -74,6 +85,15 @@ export function App() {
   const displayedStep = steps[selectedStep] ?? steps.at(-1);
   const observedReference = mismatch?.reference ?? pendingEvictionScenario.expected;
   const observedTarget = mismatch?.target ?? pendingEvictionScenario.actual;
+
+  useEffect(() => {
+    if (!catalogOpen) return undefined;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCatalogOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [catalogOpen]);
 
   async function runLab(nextFixed = fixed, nextTrace = trace) {
     setPhase("running");
@@ -141,6 +161,33 @@ export function App() {
     window.setTimeout(() => setCopied(false), 1300);
   }
 
+  function runCatalogContract(contractId = catalogContractId) {
+    const evidence = executeCatalogContract(contractId);
+    setCatalogContractId(contractId);
+    setCatalogEvidence(evidence);
+    setCatalogRunNumber((value) => value + 1);
+  }
+
+  function openCatalog(contractId = catalogContractId) {
+    runCatalogContract(contractId);
+    setCatalogOpen(true);
+  }
+
+  function downloadCatalogEvidence() {
+    if (!catalogEvidence) return;
+    const blob = new Blob([`${JSON.stringify(catalogEvidence.bundle, null, 2)}\n`], {
+      type: "application/json",
+    });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = `${catalogEvidence.run.contract.id}.evidence.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(href);
+  }
+
   return (
     <div className="studio-shell">
       <header className="app-bar">
@@ -152,6 +199,14 @@ export function App() {
           </div>
         </div>
         <div className="app-status">
+          <button
+            className="catalog-header-badge"
+            onClick={() => openCatalog()}
+            title="Run all executable contracts"
+            type="button"
+          >
+            <Grid3X3 /> <span>Run 6 contracts</span>
+          </button>
           <button
             className="upstream-header-badge"
             onClick={() => setRightTab("upstream")}
@@ -219,9 +274,9 @@ export function App() {
           <section className="library-list" aria-label="Available contract templates">
             <div className="subheading"><span>Included contracts</span><strong>6</strong></div>
             {CONTRACT_LIBRARY.map((contract, index) => (
-              <div className="library-row" key={contract.id} title={contract.description}>
+              <button className="library-row" key={contract.id} onClick={() => openCatalog(contract.id)} title={`Run ${contract.title}`} type="button">
                 <span>{index + 1}</span><strong>{contract.title}</strong><Check />
-              </div>
+              </button>
             ))}
           </section>
         </aside>
@@ -334,6 +389,19 @@ export function App() {
         </aside>
       </main>
 
+      {catalogOpen && catalogEvidence && (
+        <CatalogLabDialog
+          contracts={CONTRACT_LIBRARY}
+          evidence={catalogEvidence}
+          onClose={() => setCatalogOpen(false)}
+          onDownload={downloadCatalogEvidence}
+          onRun={() => runCatalogContract()}
+          onSelect={runCatalogContract}
+          runNumber={catalogRunNumber}
+          selectedId={catalogContractId}
+        />
+      )}
+
       <footer className="status-bar">
         <span><TerminalSquare /> counterexample-studio@0.1.0</span>
         <span><History /> Seed {pendingEvictionScenario.seed} · deterministic replay</span>
@@ -392,6 +460,144 @@ function Verdict({ phase }: { phase: RunPhase }) {
     return <section className="verdict-card passed"><CheckCircle2 /><div><span>PASS</span><h2>Invariant preserved</h2><p>The corrected target evicts the completed customer before the next observation.</p></div></section>;
   }
   return <section className="verdict-card failed"><Bug /><div><span>FAIL · SILENT</span><h2>Stale membership</h2><p>The update commits, but the target query retains a record that no longer matches.</p><code>expected [c-203, c-101]\nactual   [c-203, c-101, c-314]</code></div></section>;
+}
+
+function summarizeCoreResult(result: OperationResult | undefined) {
+  if (!result) return "not observed";
+  if (result.kind === "mutation") return "mutation accepted";
+  if (result.kind === "error") return `${result.name}: ${result.message}`;
+  return result.rows.length === 0
+    ? "[]"
+    : `[${result.rows.map((row) => row.id).join(", ")}]`;
+}
+
+function formatCoreOperation(operation: TraceOperation) {
+  if (operation.op === "put") return `put ${operation.record.id} ${JSON.stringify(operation.record)}`;
+  if (operation.op === "delete") return `delete ${operation.id}`;
+  return `${operation.label ?? "query"} ${JSON.stringify(operation.query)}`;
+}
+
+function CatalogLabDialog({
+  contracts,
+  evidence,
+  onClose,
+  onDownload,
+  onRun,
+  onSelect,
+  runNumber,
+  selectedId,
+}: {
+  contracts: ContractManifest[];
+  evidence: CatalogEvidence;
+  onClose: () => void;
+  onDownload: () => void;
+  onRun: () => void;
+  onSelect: (contractId: string) => void;
+  runNumber: number;
+  selectedId: string;
+}) {
+  const mismatch = evidence.run.result.mismatch;
+  const mismatchObservation = mismatch
+    ? evidence.run.result.observations[mismatch.step]
+    : undefined;
+
+  return (
+    <div
+      className="catalog-overlay"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) onClose();
+      }}
+      role="presentation"
+    >
+      <section aria-label="Executable contract lab" aria-modal="true" className="catalog-dialog" role="dialog">
+        <header className="catalog-dialog-header">
+          <div className="catalog-dialog-title">
+            <span className="catalog-dialog-icon"><Grid3X3 /></span>
+            <div>
+              <span>Live browser engine</span>
+              <h2>Executable contract matrix</h2>
+            </div>
+          </div>
+          <div className="catalog-dialog-status">
+            <span><ShieldCheck /> Evidence verified</span>
+            <button aria-label="Close contract lab" className="catalog-close" onClick={onClose} title="Close" type="button"><X /></button>
+          </div>
+        </header>
+
+        <div className="catalog-dialog-body">
+          <nav aria-label="Executable contracts" className="catalog-contract-nav">
+            <header><span>Registered contracts</span><strong>{contracts.length}</strong></header>
+            {contracts.map((contract, index) => (
+              <button
+                aria-current={selectedId === contract.id ? "true" : undefined}
+                className={selectedId === contract.id ? "catalog-contract-option active" : "catalog-contract-option"}
+                key={contract.id}
+                onClick={() => onSelect(contract.id)}
+                type="button"
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div><strong>{contract.title}</strong><small>{contract.defaultTarget}</small></div>
+                {selectedId === contract.id ? <CircleDot /> : <Check />}
+              </button>
+            ))}
+            <div className="catalog-runtime-note">
+              <TerminalSquare />
+              <p><strong>No fixture JSON</strong><span>This surface calls the same core runner, minimizer, and verifier directly in your browser.</span></p>
+            </div>
+          </nav>
+
+          <div className="catalog-contract-detail">
+            <section className="catalog-contract-heading">
+              <div>
+                <span>Run #{runNumber} · seed {CATALOG_LAB_SEED}</span>
+                <h3>{evidence.run.contract.title}</h3>
+                <p>{evidence.run.contract.invariant}</p>
+              </div>
+              <div className="catalog-failure-chip"><Bug /><span>FAIL reproduced</span><strong>{mismatch?.kind.replaceAll("_", " ")}</strong></div>
+            </section>
+
+            <section className="catalog-metrics">
+              <div><span>Generated trace</span><strong>{evidence.run.trace.length}</strong><small>operations</small></div>
+              <div><span>Minimal witness</span><strong>{evidence.minimized.trace.length}</strong><small>operations</small></div>
+              <div><span>Evaluations</span><strong>{evidence.minimized.evaluations}</strong><small>bounded</small></div>
+              <div><span>Integrity</span><strong><BadgeCheck /> valid</strong><small>SHA-256</small></div>
+            </section>
+
+            <div className="catalog-proof-grid">
+              <section className="catalog-observation">
+                <header><span>Differential observation</span><strong>step {(mismatch?.step ?? 0) + 1}</strong></header>
+                <div className="catalog-observation-row reference"><span>Reference</span><code>{summarizeCoreResult(mismatchObservation?.reference)}</code></div>
+                <div className="catalog-observation-row target"><span>{evidence.run.target}</span><code>{summarizeCoreResult(mismatchObservation?.target)}</code></div>
+                <p>{mismatch?.summary}</p>
+              </section>
+
+              <section className="catalog-integrity">
+                <header><span>Verified evidence bundle</span><ShieldCheck /></header>
+                <div><span>Bundle</span><code>{evidence.bundle.bundleId}</code></div>
+                <div><span>Digest</span><code>{evidence.bundle.integrity.digest}</code></div>
+                <p>Replay verification: <strong>{evidence.verification.replayedMismatch?.replaceAll("_", " ")}</strong></p>
+              </section>
+            </div>
+
+            <section className="catalog-minimal-trace">
+              <header><span>Smallest replayable witness</span><strong>{evidence.minimized.trace.length} steps</strong></header>
+              <ol>
+                {evidence.minimized.trace.map((operation, index) => (
+                  <li key={`${operation.op}-${index}`}><span>{index + 1}</span><code>{formatCoreOperation(operation)}</code></li>
+                ))}
+              </ol>
+            </section>
+
+            <footer className="catalog-actions">
+              <div><span>Target mutant</span><strong>{evidence.run.target}</strong></div>
+              <button className="catalog-secondary-action" onClick={onDownload} type="button"><ArrowDownToLine /> Download evidence</button>
+              <button className="catalog-primary-action" onClick={onRun} type="button"><Play /> Re-run contract</button>
+            </footer>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function ContractPanel({ copied, onCopy }: { copied: boolean; onCopy: () => void }) {

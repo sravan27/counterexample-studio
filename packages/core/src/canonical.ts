@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { sha256 as sha256Digest } from "@noble/hashes/sha2.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import type { JsonValue } from "./types.ts";
 
 export class CounterexampleError extends Error {
@@ -47,7 +48,7 @@ export function canonicalStringify(value: unknown): string {
 }
 
 export function sha256(value: string | Uint8Array): string {
-  return createHash("sha256").update(value).digest("hex");
+  return bytesToHex(sha256Digest(typeof value === "string" ? utf8ToBytes(value) : value));
 }
 
 export function hashCanonical(value: unknown): string {

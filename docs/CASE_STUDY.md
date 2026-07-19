@@ -48,6 +48,8 @@ invariant -> contract -> generated trace -> differential mismatch
 
 The browser demonstration uses a new scenario rather than replaying a prior pull request. A customer is inserted into a pending queue, updated to complete, and queried again. The target write succeeds, but stale cache invalidation leaves the completed customer visible in the pending queue. The lab reduces forty operations to the three-step proof and verifies the corrected adapter against that witness.
 
+The browser also exposes the complete six-contract matrix as live execution rather than screenshots or fixture JSON. Every selection generates a bounded trace, compares real reference and mutant adapters, minimizes the failure, hash-binds the evidence, replay-verifies it, and allows the resulting bundle to be downloaded. This makes the broader engine inspectable without asking a judge to install the CLI.
+
 ## Closing The Proof Gap
 
 A deliberately faulty demo can explain a product, but it cannot establish that the machinery works on independent code. Counterexample Studio therefore includes a historical replay against two exact published versions of PowerSync's sync-rules package around PR #646.
@@ -67,6 +69,7 @@ Every executable component in this repository was created during Build Week:
 - tamper-evident evidence bundles and deterministic replay;
 - Vitest regression exporter;
 - IndexedDB studio;
+- browser-native six-contract execution and evidence export;
 - Codex skill and local MCP server.
 
 Prior work is cited as public problem evidence. No PowerSync, Rocicorp, or private security-report code is copied into the product implementation. Two exact public PowerSync npm packages are installed only as attributed historical verification fixtures.
