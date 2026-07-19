@@ -1,4 +1,4 @@
-import { listContractManifests } from "@counterexample-studio/core/catalog";
+import { listContractManifests } from "@counterexample-studio/core";
 import { describe, expect, test } from "vitest";
 
 import {
@@ -32,4 +32,3 @@ describe("browser catalog lab", () => {
     expect(second.minimized.trace).toEqual(first.minimized.trace);
   });
 });
-
